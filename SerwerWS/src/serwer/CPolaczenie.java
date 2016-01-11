@@ -99,14 +99,21 @@ public class CPolaczenie implements Callable<String> {
 		}
 	}
 	
-	protected void readWrite(CPackage comand)
+	protected void readWrite(CPackage pack)
 	{
 		try {
-			objOut.writeObject(comand);
+			objOut.writeObject(pack);
 		} catch (IOException e) {
 			System.out.println("Blad wysylania objektu");
 			e.printStackTrace();
 		}
+	}
+	
+	
+	protected void WhoIAm()
+	{
+		pack.setCommand(COMMANDS.WHO_I_AM);
+		pack.se
 	}
 	
 	private void menu(COMMANDS comand)
@@ -120,8 +127,7 @@ public class CPolaczenie implements Callable<String> {
 		}break;
 		case WHO_I_AM		    :
 		{
-			
-			
+						
 		}break;
 		case ENEMY			    :
 		{

@@ -13,16 +13,16 @@ public class CPackage implements Serializable {
 	
 	private COMMANDS command;
 	private String data;
-	private String destynation;
-	private String source;
+	private String destynation;		// not use now
+	private String source;			// not use now
 	
-	public CPackage(COMMANDS caommand, String destynation, String source, String data)
+	public CPackage(COMMANDS caommand, /*String destynation, String source,*/ String data)
 	{
 		super();
 		this.setCommand(caommand);
 		this.setData(data);
-		this.setDestynation(destynation);
-		this.setSource(source);
+//		this.setDestynation(destynation);
+//		this.setSource(source);
 	}
 	
 	public CPackage()
