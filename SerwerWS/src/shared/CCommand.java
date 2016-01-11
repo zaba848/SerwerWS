@@ -4,9 +4,11 @@ public class CCommand {
 
 	public enum COMMANDS {
 	 // sterowanie 0 - 999
-		BEGIN				(555 ),		// pierwszy komunikat do serwera, po nawiazaniu jest traktowana jako pusta koneda
-		END 				(666 ),		// ostatni komunikta / zamkniecie gniazada
-		GET_SESJA			(777 ),		// zwraca id sesji
+		BEGIN				(111 ),		// pierwszy komunikat do serwera, po nawiazaniu jest traktowana jako pusta koneda
+		END 				(222 ),		// ostatni komunikta / zamkniecie gniazada
+		GET_SESJA			(333 ),		// zwraca id sesji
+		START_GAME			(444 ),
+		END_GAME			(555 ),
 		
 	 //rozgrywka 1000 - 3000
 		WHO_I_AM			(1000),		// wysyla swoje id	
