@@ -25,7 +25,9 @@ public class CPolaczenie implements Callable<String> {
 	private InputStream inObjStream = null;
 	private OutputStream outObjStream = null;
 	private ObjectOutputStream objOut = null;
-	private CPackage pack;
+	private CPackage packIn;
+	private CPackage packOut;
+
 	private boolean exit = false;
 
 
@@ -37,8 +39,9 @@ public class CPolaczenie implements Callable<String> {
 
 	public void init() {
 		exit = false;
-		setPack(new CPackage());
-
+		packIn = new CPackage();
+		packOut = new CPackage();
+		
 		try {
 			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (IOException e) {
@@ -89,7 +92,7 @@ public class CPolaczenie implements Callable<String> {
 	protected void readObj()
 	{
 		try {
-			setPack((CPackage)objIn.readObject());
+			packIn = (CPackage)objIn.readObject();
 		} catch (ClassNotFoundException e) {
 			System.out.println("Blad nie znaleziono klasy");
 			e.printStackTrace();
@@ -112,8 +115,7 @@ public class CPolaczenie implements Callable<String> {
 	
 	protected void WhoIAm()
 	{
-		pack.setCommand(COMMANDS.WHO_I_AM);
-		pack.se
+
 	}
 	
 	private void menu(COMMANDS comand)
@@ -168,7 +170,7 @@ public class CPolaczenie implements Callable<String> {
 		default:
 			break;
 		}
-		pack.reset();
+		packIn.reset();
 
 	}
 
@@ -176,7 +178,7 @@ public class CPolaczenie implements Callable<String> {
 	public String call() throws Exception {
 
 		init();
-		while(pack.getCommand() != COMMANDS.BEGIN)
+		while(packIn.getCommand() != COMMANDS.BEGIN)
 		{
 			readObj();
 		}
@@ -185,7 +187,7 @@ public class CPolaczenie implements Callable<String> {
 			while(!exit)
 			{
 				readObj();
-				menu(pack.getCommand());
+				menu(packIn.getCommand());
 			}
 			
 			
@@ -201,12 +203,12 @@ public class CPolaczenie implements Callable<String> {
 		return "Disconnect: " + ID;
 	}
 
-	public CPackage getPack() {
-		return pack;
+	public CPackage getPackIn() {
+		return packIn;
 	}
 
-	public void setPack(CPackage pack) {
-		this.pack = pack;
+	public void setPackOut(CPackage pack) {
+		this.packOut = pack;
 	}
 
 }

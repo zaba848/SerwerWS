@@ -6,9 +6,10 @@ public class CCommand {
 	 // sterowanie 0 - 999
 		BEGIN				(555 ),		// pierwszy komunikat do serwera, po nawiazaniu jest traktowana jako pusta koneda
 		END 				(666 ),		// ostatni komunikta / zamkniecie gniazada
+		GET_SESJA			(777 ),		// zwraca id sesji
 		
 	 //rozgrywka 1000 - 3000
-		WHO_I_AM			(1000),		// wysyla swoje id
+		WHO_I_AM			(1000),		// wysyla swoje id	
 		ENEMY				(1005),		// pobiera id przeciwnika
 		GRAME_ID			(1010),		// pobiera id gry
 		SEND_MOVE			(1015),		// wysyla twoj ruch
