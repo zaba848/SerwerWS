@@ -1,9 +1,14 @@
 package serwer;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import shared.CPlayer;
+import shared.CSession;
 
 public class CServer {
 	public static final int PULA_WATKOW = 50;
@@ -11,10 +16,14 @@ public class CServer {
 	
 	
 	
-	protected static int port;
+	protected static int port;	// w razie potrzeby podania z palca
 	protected static ServerSocket server;
 	protected static Scanner klawiatura;
 	protected static final boolean runCreationTest = false;
+	
+	public static Map<Integer, CSession> Game = new HashMap<Integer, CSession>();
+	public static Map<Integer, CPlayer> Wait = new HashMap<Integer, CPlayer>();
+
 	
 	private static void createTest(boolean test)
 	{
@@ -36,11 +45,12 @@ public class CServer {
 		System.out.println("Start servera");
 		CDataBaseControll.init();
 		createTest(runCreationTest);
+		port = PORT;
+		if(PORT < 100)
 		try {
-			port = PORT;
-//			System.out.println("Podaj port dla klientow: ");
-//			 port = klawiatura.nextInt();
-//			 klawiatura.nextLine();
+			System.out.println("Podaj port dla klientow: ");
+			 port = klawiatura.nextInt();
+			 klawiatura.nextLine();
 		} catch (NumberFormatException e) {
 			System.err.println("Bledny numer portu: " + e);
 			return;
@@ -48,6 +58,8 @@ public class CServer {
 		try {
 			server = new ServerSocket(port);
 			System.out.println("Serwer na porcie: " + port);
+			
+			
 			while (true) {
 				Socket socket = server.accept();
 				System.out.println("Polaczono");

@@ -115,7 +115,7 @@ public class CPolaczenie implements Callable<String> {
 	
 	protected void WhoIAm()
 	{
-
+		CServer.Game.p
 	}
 	
 	private void menu(COMMANDS comand)
