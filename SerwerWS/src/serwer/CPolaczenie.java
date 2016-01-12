@@ -11,9 +11,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.Callable;
 
-import shared.CCommand;
 import shared.CCommand.COMMANDS;
 import shared.CPackage;
+import shared.CPlayer;
 
 public class CPolaczenie implements Callable<String> {
 
@@ -89,7 +89,7 @@ public class CPolaczenie implements Callable<String> {
 
 	}
 	
-	protected void readObj()
+	protected CPackage readObj()
 	{
 		try {
 			packIn = (CPackage)objIn.readObject();
@@ -100,6 +100,7 @@ public class CPolaczenie implements Callable<String> {
 			System.out.println("Blad odczytu objektu");
 			e.printStackTrace();
 		}
+		return packIn;
 	}
 	
 	protected void readWrite(CPackage pack)
@@ -113,11 +114,21 @@ public class CPolaczenie implements Callable<String> {
 	}
 	
 	
-	protected void WhoIAm()
+	protected void WhoIAm(CPackage readed)
 	{
-		CServer.Game.p
+		// jak to zutowac?!
+		String data = readed.getData();
+		data.replace(";", " ");
+		data.replace("CPlayer=", ";");
+		data.replace(", input=", ";");
+		data.replace(", output=", ";");
+		data.trim();
+		String rawPlayer[] = data.split(";");
+		CPlayer player = new CPlayer((int)rawPlayer[0], (ObjectOutputStream)rawPlayer[1], (ObjectInputStream)rawPlayer[2]);
+		CServer.Wait.put(CServer.getID(),player);
 	}
 	
+
 	private void menu(COMMANDS comand)
 	{
 		switch(comand)
@@ -176,13 +187,16 @@ public class CPolaczenie implements Callable<String> {
 
 	@Override
 	public String call() throws Exception {
-
 		init();
-		while(packIn.getCommand() != COMMANDS.BEGIN)
+
 		{
-			readObj();
+			CPackage begin = new CPackage();
+			while(begin.getCommand() != COMMANDS.BEGIN)
+			{
+				begin = readObj();
+			}
+			WhoIAm(begin);
 		}
-		
 		try {
 			while(!exit)
 			{

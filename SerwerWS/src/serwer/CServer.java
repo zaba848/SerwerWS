@@ -20,9 +20,10 @@ public class CServer {
 	protected static ServerSocket server;
 	protected static Scanner klawiatura;
 	protected static final boolean runCreationTest = false;
+	protected static int ID = 100;
 	
 	public static Map<Integer, CSession> Game = new HashMap<Integer, CSession>();
-	public static Map<Integer, CPlayer> Wait = new HashMap<Integer, CPlayer>();
+	public static Map<Integer, CPlayer > Wait = new HashMap<Integer, CPlayer> ();
 
 	
 	private static void createTest(boolean test)
@@ -36,6 +37,11 @@ public class CServer {
 			CDataBaseControll.updateDataBase("DROP TABLE test");
 			System.out.println("Usunieto tablele test.");
 		}
+	}
+	
+	synchronized public static int getID()
+	{
+		return (ID + port);
 	}
 	
 

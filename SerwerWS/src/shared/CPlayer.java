@@ -15,6 +15,11 @@ public class CPlayer {
 		this.setObjIn(in);
 		this.setObjOut(out);
 	}
+	
+	@Override
+	public String toString() {
+		return "CPlayer=" + getID() + ", input=" + getObjIn() + ", output=" + getObjOut() + ";";
+	}
 
 	public int getID() {
 		return ID;
