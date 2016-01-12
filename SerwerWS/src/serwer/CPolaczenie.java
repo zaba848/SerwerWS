@@ -108,7 +108,7 @@ public class CPolaczenie implements Callable<String> {
 		return getPackIn();
 	}
 	
-	protected void readWrite(CPackage pack)
+	protected void writeObj(CPackage pack)
 	{
 		try {
 			objOut.writeObject(pack);
@@ -121,7 +121,7 @@ public class CPolaczenie implements Callable<String> {
 	
 	protected void WhoIAm(CPackage readed)
 	{
-		// jak to zutowac?!
+		// dodac sprawdzanie z urzytkownikami
 		String data = readed.getData();
 		data.replace(";", " ");
 		data.replace("CPlayer=", " ");
@@ -136,6 +136,7 @@ public class CPolaczenie implements Callable<String> {
 		if(!CServer.Wait.contains(my))
 		{
 			CServer.Wait.add(my);
+			writeObj(new CPackage(COMMANDS.BEGIN,my.toString()));
 			return true;
 			
 		}else
@@ -151,17 +152,16 @@ public class CPolaczenie implements Callable<String> {
 	
 	protected void enemy()
 	{
-
-		int tryNumber = 50;
-		addedToWait = addToWait(my, tryNumber);			// piec razy probuje sie dodac do tablicy oczekujacych
+		startBattle();
 	}
 	
-	private Boolean startBattle(CPlayer id1, int addTry)
+	private Boolean startBattle()
 	{
 		CPlayer enemy = CServer.popEnemy();
 		if(enemy != new CPlayer())
 			{
 				CServer.setGame(my, enemy);
+				setPackOut(new CPackage(COMMANDS.BEGIN, enemy.toString()));
 			}
 		else
 		{

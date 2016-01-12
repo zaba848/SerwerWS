@@ -1,8 +1,11 @@
 package serwer;
 
+import java.util.Vector;
+
+import shared.CPackage;
 import shared.CPlayer;
 
-public class CGame {
+public class CGame implements Comparable<CGame>{
 
 
 
@@ -15,7 +18,6 @@ public class CGame {
 		this.setID_1(id1);
 		this.setID_2(id2);
 		this.setID_GAME(idgame);
-
 	}
 	
 	public CGame()
@@ -52,6 +54,16 @@ public class CGame {
 
 	public void setID_GAME(int iD_GAME) {
 		ID_GAME = iD_GAME;
+	}
+
+	@Override
+	public int compareTo(CGame o) {
+
+	return ID_GAME - o.ID_GAME;
+			
+		
+
+		
 	}
 
 

@@ -2,16 +2,17 @@ package serwer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import shared.CPackage;
 import shared.CPlayer;
 
 public class CServer {
-//	public static final int PULA_WATKOW = 50;
+	public static final int PULA_WATKOW = 50;
 	public static final int PORT = 2016;
 	
 	
@@ -23,13 +24,14 @@ public class CServer {
 	protected static int ID = 100;
 	
 //	public static Map<Integer, CSession> Game = new HashMap<Integer, CSession>();
-	public static List<CGame>   Game  = new ArrayList<CGame>();
+	public static Vector<CGame>   Game  = new Vector<CGame>();
 	public static List<CPlayer> Wait  = new ArrayList<CPlayer> ();	
 	public static List<CPlayer> Enemy = new ArrayList<CPlayer> ();	
 
-	protected static List<Object> Thread = new ArrayList<Object>();
+//	protected static List<Object> Thread = new ArrayList<Object>();
 	
 	
+
 	public static synchronized CPlayer popEnemy()
 	{
 		if(Enemy.size() > 0)
@@ -44,9 +46,27 @@ public class CServer {
 	public static synchronized void setGame(CPlayer player1, CPlayer player2)
 	{
 		ID++;
-		Game.add(new CGame(ID,player1,player2));
+		Game.add(new CGame(port + ID ,player1,player2));
 		
 	}
+	
+	public static synchronized void sendChat(int gameID,CPlayer enemy, CPackage pack)
+	{
+		if(Game.get(gameID) != null)
+		{
+
+			if(Game.get(gameID).getID_1() == enemy)
+			{
+				Game.get(gameID).getID_1().chat.addElement(pack);
+			}else
+			{
+				Game.get(gameID).getID_2().chat.addElement(pack);
+			}
+		}
+		
+	}
+	
+
 	
 	private static void createTest(boolean test)
 	{
@@ -91,9 +111,10 @@ public class CServer {
 			while (true) {
 				Socket socket = server.accept();
 				System.out.println("Polaczono");
-				Thread.add(new CPolaczenie(socket));
-//				ExecutorService exec = Executors.newFixedThreadPool(PULA_WATKOW);
-//				exec.execute(new CScoreGetter<String>((new CPolaczenie(socket))));
+//				Thread.add(new CPolaczenie(socket));
+//				Thread.get(Thread.size()-1).call();
+				ExecutorService exec = Executors.newFixedThreadPool(PULA_WATKOW);
+				exec.execute(new CScoreGetter<String>((new CPolaczenie(socket))));
 			}
 		} catch (Exception e) {
 			System.err.println(e);
