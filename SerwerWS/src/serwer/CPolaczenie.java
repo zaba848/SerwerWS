@@ -25,8 +25,11 @@ public class CPolaczenie implements Callable<String> {
 	private InputStream inObjStream = null;
 	private OutputStream outObjStream = null;
 	private ObjectOutputStream objOut = null;
-	private CPackage packIn;
+	private CPackage packIn ;
 	private CPackage packOut;
+	private CPlayer my;
+	private Boolean addedToWait;
+
 
 	private boolean exit = false;
 
@@ -39,8 +42,10 @@ public class CPolaczenie implements Callable<String> {
 
 	public void init() {
 		exit = false;
-		packIn = new CPackage();
+		setPackIn(new CPackage());
 		packOut = new CPackage();
+		setMy(new CPlayer());
+		addedToWait = false;
 		
 		try {
 			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -92,7 +97,7 @@ public class CPolaczenie implements Callable<String> {
 	protected CPackage readObj()
 	{
 		try {
-			packIn = (CPackage)objIn.readObject();
+			setPackIn((CPackage)objIn.readObject());
 		} catch (ClassNotFoundException e) {
 			System.out.println("Blad nie znaleziono klasy");
 			e.printStackTrace();
@@ -100,7 +105,7 @@ public class CPolaczenie implements Callable<String> {
 			System.out.println("Blad odczytu objektu");
 			e.printStackTrace();
 		}
-		return packIn;
+		return getPackIn();
 	}
 	
 	protected void readWrite(CPackage pack)
@@ -119,14 +124,53 @@ public class CPolaczenie implements Callable<String> {
 		// jak to zutowac?!
 		String data = readed.getData();
 		data.replace(";", " ");
-		data.replace("CPlayer=", ";");
-		data.replace(", input=", ";");
-		data.replace(", output=", ";");
+		data.replace("CPlayer=", " ");
 		data.trim();
-		String rawPlayer[] = data.split(";");
-		CPlayer player = new CPlayer((int)rawPlayer[0], (ObjectOutputStream)rawPlayer[1], (ObjectInputStream)rawPlayer[2]);
-		CServer.Wait.put(CServer.getID(),player);
+		my.setID( Integer.parseInt(data));
+		int tryNumber = 5;
+		addedToWait = addToWait(my, tryNumber);			// piec razy probuje sie dodac do listy oczekujacych
 	}
+	
+	private Boolean addToWait(CPlayer player, int tryNumb)
+	{
+		if(!CServer.Wait.contains(my))
+		{
+			CServer.Wait.add(my);
+			return true;
+			
+		}else
+		{
+			if(tryNumb >= 0)
+			{
+				tryNumb--;
+				addedToWait = addToWait(my,tryNumb);		// zeby zrozumiec rekurencje najpierw trzeba zrozumiec rekurencje
+			}
+		}
+		return false;
+	}
+	
+	protected void enemy()
+	{
+
+		int tryNumber = 50;
+		addedToWait = addToWait(my, tryNumber);			// piec razy probuje sie dodac do tablicy oczekujacych
+	}
+	
+	private Boolean startBattle(CPlayer id1, int addTry)
+	{
+		CPlayer enemy = CServer.popEnemy();
+		if(enemy != new CPlayer())
+			{
+				CServer.setGame(my, enemy);
+			}
+		else
+		{
+			CServer.Enemy.add(my);
+		}
+		
+		return false;
+	}
+	
 	
 
 	private void menu(COMMANDS comand)
@@ -140,11 +184,11 @@ public class CPolaczenie implements Callable<String> {
 		}break;
 		case WHO_I_AM		    :
 		{
-						
+			WhoIAm(readObj());			
 		}break;
 		case ENEMY			    :
 		{
-			
+			///
 			
 		}break;
 		case GRAME_ID		    :
@@ -181,7 +225,7 @@ public class CPolaczenie implements Callable<String> {
 		default:
 			break;
 		}
-		packIn.reset();
+		getPackIn().reset();
 
 	}
 
@@ -201,7 +245,7 @@ public class CPolaczenie implements Callable<String> {
 			while(!exit)
 			{
 				readObj();
-				menu(packIn.getCommand());
+				menu(getPackIn().getCommand());
 			}
 			
 			
@@ -223,6 +267,22 @@ public class CPolaczenie implements Callable<String> {
 
 	public void setPackOut(CPackage pack) {
 		this.packOut = pack;
+	}
+	
+	public CPlayer getPackOut() {
+		return my;
+	}
+
+	public CPlayer getMy() {
+		return my;
+	}
+
+	public void setMy(CPlayer my) {
+		this.my = my;
+	}
+
+	public void setPackIn(CPackage packIn) {
+		this.packIn = packIn;
 	}
 
 }

@@ -1,17 +1,17 @@
 package serwer;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import shared.CPackage;
 import shared.CPlayer;
-import shared.CSession;
 
 public class CServer {
-	public static final int PULA_WATKOW = 50;
+//	public static final int PULA_WATKOW = 50;
 	public static final int PORT = 2016;
 	
 	
@@ -22,9 +22,31 @@ public class CServer {
 	protected static final boolean runCreationTest = false;
 	protected static int ID = 100;
 	
-	public static Map<Integer, CSession> Game = new HashMap<Integer, CSession>();
-	public static Map<Integer, CPlayer > Wait = new HashMap<Integer, CPlayer> ();
+//	public static Map<Integer, CSession> Game = new HashMap<Integer, CSession>();
+	public static List<CGame>   Game  = new ArrayList<CGame>();
+	public static List<CPlayer> Wait  = new ArrayList<CPlayer> ();	
+	public static List<CPlayer> Enemy = new ArrayList<CPlayer> ();	
 
+	protected static List<Object> Thread = new ArrayList<Object>();
+	
+	
+	public static synchronized CPlayer popEnemy()
+	{
+		if(Enemy.size() > 0)
+		{
+			CPlayer enemy = Enemy.get(Enemy.size() - 1);	// powinno pobrac ostani element
+			Enemy.remove(enemy);	// powinno usunac ostani element
+			return enemy;
+		}
+		return new CPlayer();	// nie wiem jak to zadziala
+	}
+	
+	public static synchronized void setGame(CPlayer player1, CPlayer player2)
+	{
+		ID++;
+		Game.add(new CGame(ID,player1,player2));
+		
+	}
 	
 	private static void createTest(boolean test)
 	{
@@ -69,9 +91,9 @@ public class CServer {
 			while (true) {
 				Socket socket = server.accept();
 				System.out.println("Polaczono");
-
-				ExecutorService exec = Executors.newFixedThreadPool(PULA_WATKOW);
-				exec.execute(new CScoreGetter<String>((new CPolaczenie(socket))));
+				Thread.add(new CPolaczenie(socket));
+//				ExecutorService exec = Executors.newFixedThreadPool(PULA_WATKOW);
+//				exec.execute(new CScoreGetter<String>((new CPolaczenie(socket))));
 			}
 		} catch (Exception e) {
 			System.err.println(e);

@@ -9,16 +9,23 @@ public class CPlayer {
 	private ObjectInputStream objIn = null;
 	private ObjectOutputStream objOut = null;
 	
-	public CPlayer(int id, ObjectOutputStream out, ObjectInputStream in)
+	public CPlayer(int id/*, ObjectOutputStream out, ObjectInputStream in*/)
 	{
 		this.setID(id);
-		this.setObjIn(in);
-		this.setObjOut(out);
+/*		this.setObjIn(in);
+		this.setObjOut(out);*/
+	}
+	
+	public CPlayer()
+	{
+		this.setID(0);
+/*		this.setObjIn(null);
+		this.setObjOut(null);*/
 	}
 	
 	@Override
 	public String toString() {
-		return "CPlayer=" + getID() + ", input=" + getObjIn() + ", output=" + getObjOut() + ";";
+		return "CPlayer=" + getID() + /*", input=" + getObjIn() + ", output=" + getObjOut() + */";";
 	}
 
 	public int getID() {
