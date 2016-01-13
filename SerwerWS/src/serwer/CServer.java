@@ -33,10 +33,10 @@ public class CServer {
 	
 	public static synchronized void waitForEnemy(CPlayer player)
 	{
-		WAIT_QUEUE.addElement(player);
+		WAIT_QUEUE.add(player);
 	}
 	
-	public static synchronized Integer beginGame(CPlayer player)
+	public static synchronized Integer beginGame(CPlayer player) // dodac jakas ochrone przed fauszywymiwejsciami
 	{
 		if(WAIT_QUEUE.size() > 0)
 		{
@@ -51,8 +51,24 @@ public class CServer {
 			
 			
 		}
-			WAIT_QUEUE.add(player);
+//			WAIT_QUEUE.add(player);
+		waitForEnemy(player);
 		return 10;
+	}
+	
+	public static synchronized CPlayer getGame(CPlayer my, int gameID)
+	{
+		
+		CGame enemy = GAME.get(gameID);
+		if((enemy.getID_1() != my) && enemy != null)	// teoretycznie nie mozliwe, ale
+		{
+			return enemy.getID_2();
+		}else
+		if((enemy.getID_2() != my) && enemy != null)
+		{
+			return enemy.getID_2();
+		}
+		return null;
 	}
 	
 	public static synchronized Socket getEnemy(CPlayer my, CPlayer enemy, int gameID)

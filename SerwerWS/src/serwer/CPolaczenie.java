@@ -1,13 +1,7 @@
 package serwer;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.Callable;
 
@@ -18,35 +12,35 @@ import shared.CPlayer;
 public class CPolaczenie implements Callable<String> {
 
 
-	private Socket socket = null;
-	private ObjectInputStream 	objIn = null;
-	private ObjectOutputStream 	objOut = null;
-	private ObjectInputStream 	fromEnemy = null; 
-	private ObjectOutputStream 	toEnemy = null;
-	private CPackage packInMy ;
-	private CPackage packOutMy;
-	private CPackage packInEnemy ;
-	private CPackage packOutEnemy;
-	private CPlayer my;
-	private CPlayer enemy;
+	private Socket socket 					= null			;
+	private Socket enemySoc 				= null			;
+	private ObjectInputStream 	objIn 		= null			;
+	private ObjectOutputStream 	objOut 		= null			;
+	private ObjectInputStream 	fromEnemy 	= null			; 
+	private ObjectOutputStream 	toEnemy 	= null			;
+	private CPackage packInMy 				= new CPackage();
+	private CPackage packOutMy				= new CPackage();
+	private CPackage packInEnemy 			= new CPackage();
+	private CPackage packOutEnemy			= new CPackage();
+	private CPlayer my						= new CPlayer()	;
+	private CPlayer enemy					= new CPlayer()	;
 
-	private Boolean addedToWait;
-	private int sesionID;
+	private Boolean addedToWait 			= false			;
+	private Boolean exit 					= false			;
+	private int sesionID 					= 0				;
+	private int gameID						= 0				;
+	private String ID 						= null			;
 
-
-	private boolean exit = false;
-
-
-	String ID = null;
-
+	
+	
+	
 	public CPolaczenie(Socket socket, int sesionID) {
 		this.socket = socket;
 		this.sesionID = sesionID;
 	}
 
-	public void init() {
-
-		
+	protected void init() {
+			
 		try {
 			objIn =  new ObjectInputStream(socket.getInputStream());
 		} catch (IOException e) {
@@ -61,6 +55,55 @@ public class CPolaczenie implements Callable<String> {
 			e.printStackTrace();
 		}
 
+	}
+	
+	protected void beginGame()
+	{
+		gameID = CServer.beginGame(my);
+		if(gameID > 10)
+		{
+			enemySoc = CServer.getEnemy(my, CServer.getGame(my, gameID), gameID);
+			if(enemySoc != null)
+			{
+				try {
+						fromEnemy 	= new ObjectInputStream(enemySoc.getInputStream());
+						toEnemy 	= new ObjectOutputStream(enemySoc.getOutputStream());
+					} catch (IOException e)
+					{
+						System.out.println("Blad laczenia z przeciwnikiem");
+						e.printStackTrace();
+					}
+				
+			}
+			System.out.println("Blad pobierania gniazda przeciwnika");
+			
+		}else
+		{
+			// sluchaj polaczenia od wroga
+		}
+	}
+	
+	protected void sendToEnemy(CPackage msgToEnemy)
+	{
+		try {
+			toEnemy.writeObject(msgToEnemy);
+		} catch (IOException e) {
+			System.out.println("Blad wysylania objektu do przeciwnika");
+			e.printStackTrace();
+		}
+	}
+	protected CPackage getFromEnemy()
+	{
+		try {
+			packInEnemy = (CPackage)fromEnemy.readObject();
+		} catch (ClassNotFoundException e) {
+			System.out.println("Blad nie znaleziono klasy");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Blad odczytu objektu od przeciwnika");
+			e.printStackTrace();
+		}
+		return packInEnemy;
 	}
 	
 	protected void end()
@@ -114,14 +157,14 @@ public class CPolaczenie implements Callable<String> {
 	}
 	
 	
-	private void updateMy()
+	protected void updateMy()
 	{
 		
 	}
 	
 	
 
-	private void menu(COMMANDS comand)
+	protected void menu(COMMANDS comand)
 	{
 		switch(comand)
 		{
