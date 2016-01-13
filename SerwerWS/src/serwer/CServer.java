@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Watchable;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -48,21 +49,31 @@ public class CServer {
 			if(enemy != player)
  {
 				Integer gameID = startGame(WAIT_QUEUE.firstElement(), player);
+				// powinno dzialac
+				WAIT_QUEUE.firstElement().chat.addElement(new CPackage(COMMANDS.START_GAME,gameID.toString()));
+				
+				
+	/*
+				/// bardziej ryzykowna wersja i trzeba by bylo wymyslic komunikacje od strony watku klienta
+	*/
+//				THREADS.get(WAIT_QUEUE.firstElement().getID());
+//				ObjectOutputStream toEnemy = null;;				/// bardziej ryzykowna wersja 
+//				try {
+//					toEnemy = new ObjectOutputStream(
+//							THREADS.get(WAIT_QUEUE.firstElement().getID()).getOutputStream());
+//				} catch (IOException e) {
+//					System.out.println("Blad servera, nieudana proba stworzenia strumienia do przeciwnika");
+//					e.printStackTrace();
+//				}
+//				try {
+//					toEnemy.writeObject(new CPackage(COMMANDS.START_GAME, gameID.toString()));
+//				} catch (IOException e) {
+//					System.out.println("Blad servera, nieudana proba wyslania swojego ID do pzeciwnika");
+//				}
+//				WAIT_QUEUE.remove(0);
+				
+				
 				THREADS.get(WAIT_QUEUE.firstElement().getID());
-				ObjectOutputStream toEnemy = null;;
-				try {
-					toEnemy = new ObjectOutputStream(
-							THREADS.get(WAIT_QUEUE.firstElement().getID()).getOutputStream());
-				} catch (IOException e) {
-					System.out.println("Blad servera, nieudana proba stworzenia strumienia do przeciwnika");
-					e.printStackTrace();
-				}
-				try {
-					toEnemy.writeObject(new CPackage(COMMANDS.START_GAME, gameID.toString()));
-				} catch (IOException e) {
-					System.out.println("Blad servera, nieudana proba wyslania swojego ID do pzeciwnika");
-				}
-				WAIT_QUEUE.remove(0);
 				return gameID;		// jak to zadzia³a to bede spiewa³ w pracy
 			}
 			

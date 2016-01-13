@@ -59,10 +59,10 @@ public class CPolaczenie implements Callable<String> {
 	
 	protected void beginGame()
 	{
-		gameID = CServer.beginGame(my);
-		if(gameID > 10)
+		setGameID(CServer.beginGame(my));
+		if(getGameID() > 10)
 		{
-			enemySoc = CServer.getEnemy(my, CServer.getGame(my, gameID), gameID);
+			enemySoc = CServer.getEnemy(my, CServer.getGame(my, getGameID()), getGameID());
 			if(enemySoc != null)
 			{
 				try {
@@ -263,6 +263,14 @@ public class CPolaczenie implements Callable<String> {
 
 	public void setSesionID(int sesionID) {
 		this.sesionID = sesionID;
+	}
+
+	public int getGameID() {
+		return gameID;
+	}
+
+	public void setGameID(int gameID) {
+		this.gameID = gameID;
 	}
 
 }
