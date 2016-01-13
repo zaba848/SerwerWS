@@ -57,45 +57,49 @@ public class CPolaczenie implements Callable<String> {
 
 	}
 	
-	protected void beginGame()
-	{
+	protected boolean beginGame() {		// if connect return true
 		setGameID(CServer.beginGame(my));
-		if(getGameID() > 10)
-		{
+		if (getGameID() > 10) {
 			enemySoc = CServer.getEnemy(my, CServer.getGame(my, getGameID()), getGameID());
-			if(enemySoc != null)
-			{
+			if (enemySoc != null) {
 				try {
-						fromEnemy 	= new ObjectInputStream(enemySoc.getInputStream());
-						toEnemy 	= new ObjectOutputStream(enemySoc.getOutputStream());
-					} catch (IOException e)
-					{
-						System.out.println("Blad laczenia z przeciwnikiem");
-						e.printStackTrace();
-					}
-				
+					fromEnemy = new ObjectInputStream(enemySoc.getInputStream());
+					toEnemy = new ObjectOutputStream(enemySoc.getOutputStream());
+				} catch (IOException e) {
+					System.out.println("Blad laczenia z przeciwnikiem");
+					e.printStackTrace();
+				}
+
 			}
-			System.out.println("Blad pobierania gniazda przeciwnika");
-			
-		}else
-		{
+			return true;
+		} else {
 			boolean exit = false;
-			while(!exit)
-			{
+			
+			while (!exit) {
 				packInMy = readChat();
-				if(packInMy != null)
-				{
-					if(packInMy.getCommand() == COMMANDS.START_GAME)
-					{
+				if (packInMy != null) {
+					if (packInMy.getCommand() == COMMANDS.START_GAME) {
 						gameID = Integer.parseInt(packInMy.getData());
 						exit = true;
 					}
 				}
 			}
-			// sluchaj polaczenia od wroga
+
+			enemySoc = CServer.getEnemy(my, CServer.getGame(my, getGameID()), getGameID());
+			if (enemySoc != null) {
+				try {
+					fromEnemy = new ObjectInputStream(enemySoc.getInputStream());
+					toEnemy = new ObjectOutputStream(enemySoc.getOutputStream());
+				} catch (IOException e) {
+					System.out.println("Blad laczenia z przeciwnikiem");
+					e.printStackTrace();
+				}
+				return true;
+			}
 		}
+		return false;
 	}
-	
+
 	protected CPackage readChat()
 	{
 		if(my.chat.size() > 0)

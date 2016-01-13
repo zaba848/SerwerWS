@@ -86,13 +86,14 @@ public class CServer {
 	{
 		
 		CGame enemy = GAME.get(gameID);
-		if((enemy.getID_1() != my) && enemy != null)	// teoretycznie nie mozliwe, ale...
+		if(enemy != null)
+		if((enemy.getID_1() == my) )	// teoretycznie nie mozliwe, ale...
 		{
 			return enemy.getID_2();
 		}else
-		if((enemy.getID_2() != my) && enemy != null)
+		if((enemy.getID_2() == my) )
 		{
-			return enemy.getID_2();
+			return enemy.getID_1();
 		}
 		return null;
 	}
@@ -100,6 +101,7 @@ public class CServer {
 	public static synchronized Socket getEnemy(CPlayer my, CPlayer enemy, int gameID)
 	{
 		CGame game = GAME.get(gameID);
+		if(game != null)
 		if(((game.getID_1() == my) && (game.getID_2() == enemy)) || ((game.getID_1() == enemy) && (game.getID_2() == my)))
 		{
 			return THREADS.get(enemy.getID());
