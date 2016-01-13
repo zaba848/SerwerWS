@@ -1,120 +1,127 @@
 package serwer;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import shared.CPackage;
 import shared.CPlayer;
 
 public class CServer {
-	public static final int PULA_WATKOW = 50;
-	public static final int PORT = 2016;
+	public static final int PULA_WATKOW = 20	;	// ograniczenia sprzetowe
+	public static final int PORT 		= 2016	;
 	
 	
 	
-	protected static int port;	// w razie potrzeby podania z palca
 	protected static ServerSocket server;
-	protected static Scanner klawiatura;
-	protected static final boolean runCreationTest = false;
-	protected static int ID = 100;
-	
-//	public static Map<Integer, CSession> Game = new HashMap<Integer, CSession>();
-	public static Vector<CGame>   Game  = new Vector<CGame>();
-	public static List<CPlayer> Wait  = new ArrayList<CPlayer> ();	
-	public static List<CPlayer> Enemy = new ArrayList<CPlayer> ();	
-
-//	protected static List<Object> Thread = new ArrayList<Object>();
-	
+	protected static int ID 		= 100;
+	protected static int sesionID 	= 100;
 	
 
-	public static synchronized CPlayer popEnemy()
+	protected static final HashMap<Integer, CGame> 	GAME 		= new HashMap<Integer, CGame>	();
+	protected static final Vector <CPlayer> 		WAIT_QUEUE	= new Vector<CPlayer>			();
+	protected static final HashMap<Integer, Socket> THREADS 	= new HashMap<Integer, Socket>	();
+
+	
+	private static synchronized int getSesionID()
 	{
-		if(Enemy.size() > 0)
-		{
-			CPlayer enemy = Enemy.get(Enemy.size() - 1);	// powinno pobrac ostani element
-			Enemy.remove(enemy);	// powinno usunac ostani element
-			return enemy;
-		}
-		return new CPlayer();	// nie wiem jak to zadziala
+		sesionID++;
+		return sesionID;
 	}
 	
-	public static synchronized void setGame(CPlayer player1, CPlayer player2)
+	
+	public static synchronized void waitForEnemy(CPlayer player)
 	{
-		ID++;
-		Game.add(new CGame(port + ID ,player1,player2));
-		
+		WAIT_QUEUE.addElement(player);
 	}
 	
-	public static synchronized void sendChat(int gameID,CPlayer enemy, CPackage pack)
+	public static synchronized Integer beginGame(CPlayer player)
 	{
-		if(Game.get(gameID) != null)
+		if(WAIT_QUEUE.size() > 0)
 		{
-
-			if(Game.get(gameID).getID_1() == enemy)
+			CPlayer enemy = WAIT_QUEUE.firstElement();
+			if(enemy != player)
 			{
-				Game.get(gameID).getID_1().chat.addElement(pack);
-			}else
-			{
-				Game.get(gameID).getID_2().chat.addElement(pack);
+				
+				Integer gameID = startGame(WAIT_QUEUE.firstElement(), player);
+				WAIT_QUEUE.remove(0);
+				return gameID;
 			}
+			
+			
 		}
+			WAIT_QUEUE.add(player);
+		return 10;
+	}
+	
+	public static synchronized Socket getEnemy(CPlayer my, CPlayer enemy, int gameID)
+	{
+		CGame game = GAME.get(gameID);
+		if(((game.getID_1() == my) && (game.getID_2() == enemy)) || ((game.getID_1() == enemy) && (game.getID_2() == my)))
+		{
+			return THREADS.get(enemy.getID());
+		}
+		return null;
 		
 	}
 	
-
+	protected static synchronized Integer startGame(CPlayer player1, CPlayer player2)
+	{		
+		ID++;
+		GAME.put(ID+PORT, new CGame(ID+PORT, player1, player2));
+		
+		// stworz tabele ID+PORT
+		
+		return ID+PORT;
+	}
 	
-	private static void createTest(boolean test)
+	
+	
+	public static synchronized boolean endGame(Integer gameID, CPlayer player1,CPlayer player2 )
 	{
-		if(test)
+		CGame game = new CGame();
+		game = GAME.get(gameID);
+		if(((game.getID_1() == player1) && (game.getID_2() == player2)) || ((game.getID_1() == player2) && (game.getID_2() == player1)))
 		{
-			CDataBaseControll.updateDataBase("CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, imie char(30), lata char(3), punkty char(3), PRIMARY KEY(id))");
-			System.out.println("Utworzenie tabeli test.");
-			CDataBaseControll.updateDataBase("TRUNCATE TABLE test");
-			System.out.println("Wyczyszczono tabele test.");
-			CDataBaseControll.updateDataBase("DROP TABLE test");
-			System.out.println("Usunieto tablele test.");
+			GAME.remove(gameID);
+			return true;
 		}
+		
+		return false;
 	}
-	
-	synchronized public static int getID()
-	{
-		return (ID + port);
-	}
+
+//	private static void createTest(boolean test)
+//	{
+//		if(test)
+//		{
+//			CDataBaseControll.updateDataBase("CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, imie char(30), lata char(3), punkty char(3), PRIMARY KEY(id))");
+//			System.out.println("Utworzenie tabeli test.");
+//			CDataBaseControll.updateDataBase("TRUNCATE TABLE test");
+//			System.out.println("Wyczyszczono tabele test.");
+//			CDataBaseControll.updateDataBase("DROP TABLE test");
+//			System.out.println("Usunieto tablele test.");
+//		}
+//	}
 	
 
 
 	public static void main(String args[]) {
-		klawiatura = new Scanner(System.in);
 		System.out.println("Start servera");
 		CDataBaseControll.init();
-		createTest(runCreationTest);
-		port = PORT;
-		if(PORT < 100)
+
 		try {
-			System.out.println("Podaj port dla klientow: ");
-			 port = klawiatura.nextInt();
-			 klawiatura.nextLine();
-		} catch (NumberFormatException e) {
-			System.err.println("Bledny numer portu: " + e);
-			return;
-		}
-		try {
-			server = new ServerSocket(port);
-			System.out.println("Serwer na porcie: " + port);
+			server = new ServerSocket(PORT);
+			System.out.println("Serwer na porcie: " + PORT);
 			
 			
+			ExecutorService exec = Executors.newFixedThreadPool(PULA_WATKOW);
 			while (true) {
-				Socket socket = server.accept();
-				System.out.println("Polaczono");
-//				Thread.add(new CPolaczenie(socket));
-//				Thread.get(Thread.size()-1).call();
-				ExecutorService exec = Executors.newFixedThreadPool(PULA_WATKOW);
-				exec.execute(new CScoreGetter<String>((new CPolaczenie(socket))));
+//				Socket socket = server.accept();
+				int id = getSesionID();
+				THREADS.put(id, server.accept());
+				System.out.println("Polaczono: "+id);
+				exec.execute(new CScoreGetter<String>((new CPolaczenie(THREADS.get(id),id))));
 			}
 		} catch (Exception e) {
 			System.err.println(e);

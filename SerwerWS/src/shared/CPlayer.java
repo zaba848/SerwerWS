@@ -8,7 +8,7 @@ public class CPlayer {
 	public Vector<CPackage> chat = null;	
 
 	
-	public CPlayer(int id/*, ObjectOutputStream out, ObjectInputStream in*/)
+	public CPlayer(int id)
 	{
 		this.setID(id);
 		chat = new Vector<CPackage> ();

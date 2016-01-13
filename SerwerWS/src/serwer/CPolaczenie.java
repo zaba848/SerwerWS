@@ -19,16 +19,19 @@ public class CPolaczenie implements Callable<String> {
 
 
 	private Socket socket = null;
-	private BufferedReader input = null;
-	private PrintWriter output = null;
-	private ObjectInputStream objIn = null;
-	private InputStream inObjStream = null;
-	private OutputStream outObjStream = null;
-	private ObjectOutputStream objOut = null;
-	private CPackage packIn ;
-	private CPackage packOut;
+	private ObjectInputStream 	objIn = null;
+	private ObjectOutputStream 	objOut = null;
+	private ObjectInputStream 	fromEnemy = null; 
+	private ObjectOutputStream 	toEnemy = null;
+	private CPackage packInMy ;
+	private CPackage packOutMy;
+	private CPackage packInEnemy ;
+	private CPackage packOutEnemy;
 	private CPlayer my;
+	private CPlayer enemy;
+
 	private Boolean addedToWait;
+	private int sesionID;
 
 
 	private boolean exit = false;
@@ -36,40 +39,23 @@ public class CPolaczenie implements Callable<String> {
 
 	String ID = null;
 
-	public CPolaczenie(Socket socket) {
+	public CPolaczenie(Socket socket, int sesionID) {
 		this.socket = socket;
+		this.sesionID = sesionID;
 	}
 
 	public void init() {
-		exit = false;
-		setPackIn(new CPackage());
-		packOut = new CPackage();
-		setMy(new CPlayer());
-		addedToWait = false;
+
 		
 		try {
-			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		} catch (IOException e) {
-			System.out.println("Blad tworzenia zaczepu odczytu.");
-			e.printStackTrace();
-		}
-		try {
-			output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-		} catch (IOException e) {
-			System.out.println("Blad tworzenia zaczepu zapisu/wysylania.");
-			e.printStackTrace();
-		}
-		try {
-			inObjStream = socket.getInputStream();
-			objIn =  new ObjectInputStream(inObjStream);
+			objIn =  new ObjectInputStream(socket.getInputStream());
 		} catch (IOException e) {
 			System.out.println("Blad tworzenia strumnienia odczytu objektu");
 			e.printStackTrace();
 		}
 		
 		 try {
-			outObjStream = socket.getOutputStream();
-			objOut = new ObjectOutputStream(outObjStream);
+			objOut = new ObjectOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			System.out.println("Blad tworzenia strumnienia zapisu objektu");
 			e.printStackTrace();
@@ -81,11 +67,7 @@ public class CPolaczenie implements Callable<String> {
 	{
 		try {
 			objOut.close();
-			outObjStream.close();
 			objIn.close();
-			inObjStream.close();
-			output.close();
-			input.close();
 			socket.close();
 		} catch (IOException e) {
 			System.out.println("Blad zamkniecia polaczenia");
@@ -94,10 +76,10 @@ public class CPolaczenie implements Callable<String> {
 
 	}
 	
-	protected CPackage readObj()
+	protected CPackage readMyObj()
 	{
 		try {
-			setPackIn((CPackage)objIn.readObject());
+			packInMy = (CPackage)objIn.readObject();
 		} catch (ClassNotFoundException e) {
 			System.out.println("Blad nie znaleziono klasy");
 			e.printStackTrace();
@@ -105,7 +87,7 @@ public class CPolaczenie implements Callable<String> {
 			System.out.println("Blad odczytu objektu");
 			e.printStackTrace();
 		}
-		return getPackIn();
+		return packInMy;
 	}
 	
 	protected void writeObj(CPackage pack)
@@ -122,53 +104,19 @@ public class CPolaczenie implements Callable<String> {
 	protected void WhoIAm(CPackage readed)
 	{
 		// dodac sprawdzanie z urzytkownikami
-		String data = readed.getData();
-		data.replace(";", " ");
-		data.replace("CPlayer=", " ");
-		data.trim();
-		my.setID( Integer.parseInt(data));
-		int tryNumber = 5;
-		addedToWait = addToWait(my, tryNumber);			// piec razy probuje sie dodac do listy oczekujacych
+//		String data = readed.getData();
+//		data.replace(";", " ");
+//		data.replace("CPlayer=", " ");
+//		data.trim();
+//		my.setID( Integer.parseInt(data));
+//		int tryNumber = 5;
+//		addedToWait = addToWait(my, tryNumber);			// piec razy probuje sie dodac do listy oczekujacych
 	}
 	
-	private Boolean addToWait(CPlayer player, int tryNumb)
-	{
-		if(!CServer.Wait.contains(my))
-		{
-			CServer.Wait.add(my);
-			writeObj(new CPackage(COMMANDS.BEGIN,my.toString()));
-			return true;
-			
-		}else
-		{
-			if(tryNumb >= 0)
-			{
-				tryNumb--;
-				addedToWait = addToWait(my,tryNumb);		// zeby zrozumiec rekurencje najpierw trzeba zrozumiec rekurencje
-			}
-		}
-		return false;
-	}
 	
-	protected void enemy()
+	private void updateMy()
 	{
-		startBattle();
-	}
-	
-	private Boolean startBattle()
-	{
-		CPlayer enemy = CServer.popEnemy();
-		if(enemy != new CPlayer())
-			{
-				CServer.setGame(my, enemy);
-				setPackOut(new CPackage(COMMANDS.BEGIN, enemy.toString()));
-			}
-		else
-		{
-			CServer.Enemy.add(my);
-		}
 		
-		return false;
 	}
 	
 	
@@ -184,7 +132,7 @@ public class CPolaczenie implements Callable<String> {
 		}break;
 		case WHO_I_AM		    :
 		{
-			WhoIAm(readObj());			
+			WhoIAm(readMyObj());			
 		}break;
 		case ENEMY			    :
 		{
@@ -225,7 +173,7 @@ public class CPolaczenie implements Callable<String> {
 		default:
 			break;
 		}
-		getPackIn().reset();
+		packInMy.reset();
 
 	}
 
@@ -237,15 +185,15 @@ public class CPolaczenie implements Callable<String> {
 			CPackage begin = new CPackage();
 			while(begin.getCommand() != COMMANDS.BEGIN)
 			{
-				begin = readObj();
+				begin = readMyObj();
 			}
 			WhoIAm(begin);
 		}
 		try {
 			while(!exit)
 			{
-				readObj();
-				menu(getPackIn().getCommand());
+				readMyObj();
+				menu(packInMy.getCommand());
 			}
 			
 			
@@ -259,30 +207,6 @@ public class CPolaczenie implements Callable<String> {
 			System.exit(1);
 		}
 		return "Disconnect: " + ID;
-	}
-
-	public CPackage getPackIn() {
-		return packIn;
-	}
-
-	public void setPackOut(CPackage pack) {
-		this.packOut = pack;
-	}
-	
-	public CPlayer getPackOut() {
-		return my;
-	}
-
-	public CPlayer getMy() {
-		return my;
-	}
-
-	public void setMy(CPlayer my) {
-		this.my = my;
-	}
-
-	public void setPackIn(CPackage packIn) {
-		this.packIn = packIn;
 	}
 
 }
