@@ -79,13 +79,28 @@ public class CPolaczenie implements Callable<String> {
 			
 		}else
 		{
+			boolean exit = false;
+			while(!exit)
+			{
+				packInMy = readChat();
+				if(packInMy != null)
+				{
+					if(packInMy.getCommand() == COMMANDS.START_GAME)
+					{
+						gameID = Integer.parseInt(packInMy.getData());
+						exit = true;
+					}
+				}
+			}
 			// sluchaj polaczenia od wroga
 		}
 	}
 	
-	protected void waitForEnemyMSG()
+	protected CPackage readChat()
 	{
-		
+		if(my.chat.size() > 0)
+		return my.chat.remove(0);
+		return null;
 	}
 	
 	protected void sendToEnemy(CPackage msgToEnemy)

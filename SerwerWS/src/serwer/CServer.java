@@ -48,7 +48,7 @@ public class CServer {
 			CPlayer enemy = WAIT_QUEUE.firstElement();
 			if(enemy != player)
  {
-				Integer gameID = startGame(WAIT_QUEUE.firstElement(), player);
+				Integer gameID = startGame(player,WAIT_QUEUE.firstElement());
 				// powinno dzialac
 				WAIT_QUEUE.firstElement().chat.addElement(new CPackage(COMMANDS.START_GAME,gameID.toString()));
 				
@@ -70,10 +70,10 @@ public class CServer {
 //				} catch (IOException e) {
 //					System.out.println("Blad servera, nieudana proba wyslania swojego ID do pzeciwnika");
 //				}
-//				WAIT_QUEUE.remove(0);
+//				THREADS.get(WAIT_QUEUE.firstElement().getID());
+				WAIT_QUEUE.remove(0);
 				
 				
-				THREADS.get(WAIT_QUEUE.firstElement().getID());
 				return gameID;		// jak to zadzia³a to bede spiewa³ w pracy
 			}
 			
