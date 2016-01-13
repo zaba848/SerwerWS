@@ -36,7 +36,7 @@ public class CPolaczenie implements Callable<String> {
 	
 	public CPolaczenie(Socket socket, int sesionID) {
 		this.socket = socket;
-		this.sesionID = sesionID;
+		this.setSesionID(sesionID);
 	}
 
 	protected void init() {
@@ -81,6 +81,11 @@ public class CPolaczenie implements Callable<String> {
 		{
 			// sluchaj polaczenia od wroga
 		}
+	}
+	
+	protected void waitForEnemyMSG()
+	{
+		
 	}
 	
 	protected void sendToEnemy(CPackage msgToEnemy)
@@ -250,6 +255,14 @@ public class CPolaczenie implements Callable<String> {
 			System.exit(1);
 		}
 		return "Disconnect: " + ID;
+	}
+
+	public int getSesionID() {
+		return sesionID;
+	}
+
+	public void setSesionID(int sesionID) {
+		this.sesionID = sesionID;
 	}
 
 }

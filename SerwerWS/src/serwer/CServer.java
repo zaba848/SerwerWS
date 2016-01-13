@@ -1,4 +1,6 @@
 package serwer;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -6,6 +8,8 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import shared.CCommand.COMMANDS;
+import shared.CPackage;
 import shared.CPlayer;
 
 public class CServer {
@@ -20,7 +24,7 @@ public class CServer {
 	
 
 	protected static final HashMap<Integer, CGame> 	GAME 		= new HashMap<Integer, CGame>	();
-	protected static final Vector <CPlayer> 		WAIT_QUEUE	= new Vector<CPlayer>			();
+	protected static final Vector <CPlayer> 		WAIT_QUEUE	= new Vector<CPlayer>				();
 	protected static final HashMap<Integer, Socket> THREADS 	= new HashMap<Integer, Socket>	();
 
 	
@@ -30,28 +34,39 @@ public class CServer {
 		return sesionID;
 	}
 	
-	
 	public static synchronized void waitForEnemy(CPlayer player)
 	{
+		
 		WAIT_QUEUE.add(player);
 	}
 	
-	public static synchronized Integer beginGame(CPlayer player) // dodac jakas ochrone przed fauszywymiwejsciami
+	public static synchronized Integer beginGame(CPlayer player)  // dodac jakas ochrone przed fauszywymiwejsciami
 	{
 		if(WAIT_QUEUE.size() > 0)
 		{
 			CPlayer enemy = WAIT_QUEUE.firstElement();
 			if(enemy != player)
-			{
-				
+ {
 				Integer gameID = startGame(WAIT_QUEUE.firstElement(), player);
+				THREADS.get(WAIT_QUEUE.firstElement().getID());
+				ObjectOutputStream toEnemy = null;;
+				try {
+					toEnemy = new ObjectOutputStream(
+							THREADS.get(WAIT_QUEUE.firstElement().getID()).getOutputStream());
+				} catch (IOException e) {
+					System.out.println("Blad servera, nieudana proba stworzenia strumienia do przeciwnika");
+					e.printStackTrace();
+				}
+				try {
+					toEnemy.writeObject(new CPackage(COMMANDS.START_GAME, gameID.toString()));
+				} catch (IOException e) {
+					System.out.println("Blad servera, nieudana proba wyslania swojego ID do pzeciwnika");
+				}
 				WAIT_QUEUE.remove(0);
-				return gameID;
+				return gameID;		// jak to zadzia³a to bede spiewa³ w pracy
 			}
 			
-			
 		}
-//			WAIT_QUEUE.add(player);
 		waitForEnemy(player);
 		return 10;
 	}
@@ -60,7 +75,7 @@ public class CServer {
 	{
 		
 		CGame enemy = GAME.get(gameID);
-		if((enemy.getID_1() != my) && enemy != null)	// teoretycznie nie mozliwe, ale
+		if((enemy.getID_1() != my) && enemy != null)	// teoretycznie nie mozliwe, ale...
 		{
 			return enemy.getID_2();
 		}else
@@ -87,7 +102,7 @@ public class CServer {
 		ID++;
 		GAME.put(ID+PORT, new CGame(ID+PORT, player1, player2));
 		
-		// stworz tabele ID+PORT
+		// stworz tabele ID+PORT MySQl
 		
 		return ID+PORT;
 	}
